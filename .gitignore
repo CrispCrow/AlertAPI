@@ -1,0 +1,14 @@
+# Python cached sources
+__pycache__/
+
+# Setuptools/twine-generated files, compiled sources.
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.so
+*.o
+*.pyd
+
+# Mypy cache
+.mypy_cache
