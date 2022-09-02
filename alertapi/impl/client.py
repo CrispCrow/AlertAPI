@@ -197,6 +197,13 @@ class Client:
         return await self._http.is_alert(state=state)
 
     async def static_map(self) -> images.Image:
+        """Fetch static map of states.
+
+        Returns
+        -------
+        alertapi.images.Image
+            Deserialized Image object.
+        """
         return await self._http.fetch_static_map()
 
 
@@ -258,10 +265,6 @@ class GatewayClient:
     @property
     def loop(self) -> str:
         return self._loop
-
-    @property
-    def is_alive(self) -> bool:
-        return self._is_alive
 
     @property
     def entity_factory(self) -> entity_factory.EntityFactoryImpl:
