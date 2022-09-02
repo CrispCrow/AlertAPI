@@ -239,8 +239,7 @@ class GatewayClient:
         '_event_factory',
         '_entity_factory',
         '_event_manager',
-        '_loop',
-        '_is_alive'
+        '_loop'
     )
 
     def __init__(self, access_token: str) -> None:
