@@ -19,34 +19,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Alert API client module."""
+"""Air Raid Alert API client module."""
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ('Client',)
+__all__: typing.Sequence[str] = ('Client', 'GatewayClient')
 
+import asyncio
 import typing
 
 import aiohttp
+from aiohttp_sse_client import client as sse_client
 
 from alertapi.impl import http
+from alertapi.impl import event_manager
+from alertapi.impl import event_factory
+from alertapi.impl import entity_factory
 from alertapi.internal import converters
+from alertapi.internal import routes
 
 if typing.TYPE_CHECKING:
     from alertapi.internal.converters import StateConverter
+    from alertapi.events import base_events
     from alertapi import snowflakes
     from alertapi import states
+    from alertapi import images
 
 
 class Client:
     """Alert API client.
 
-    This is the class, you will want to create Alert API client.
+    Base client for Air Raid Alert API.
 
     Parameters
     ----------
-    session : aiohttp.ClientSession
-        Session for making API calls.
     access_token : builtins.str
         An access token to the Air Raid Alert API.
         Can be obtained from https://alerts.com.ua
@@ -54,17 +60,14 @@ class Client:
     Example
     -------
         .. code-block:: python
-            import os
             import asyncio
 
             import alertapi
-            import aiohttp
 
 
             async def main() -> None:
-                async with aiohttp.ClientSession() as session:
-                    client = alertapi.Client(session=session, access_token='...')
-                    print(await client.fetch_states())
+                client = alertapi.Client(access_token='...')
+                print(await client.fetch_states())
 
 
             loop = asyncio.get_event_loop()
@@ -78,9 +81,10 @@ class Client:
         '_state_converter'
     )
 
-    def __init__(self, session: aiohttp.ClientSession, access_token: str) -> None:
+    def __init__(self, access_token: str) -> None:
         self._access_token = access_token
-        self._http = http.HttpClientImpl(session, access_token)
+        self._session = aiohttp.ClientSession
+        self._http = http.HttpClientImpl(access_token, self._session)
         self._state_converter = converters.StateConverter()
 
     @property
@@ -144,7 +148,7 @@ class Client:
 
         Parameters
         ----------
-        state : typing.Union[typing.Literal[alertapi.internal.converters.StateConverter.STATES], alertapi.snowflakes.Snowflake]
+        state : typing.Union[typing.Literal[converters.StateConverter.STATES], snowflakes.Snowflake]
             State for search.
 
         Returns
@@ -172,7 +176,7 @@ class Client:
 
         Parameters
         ----------
-        state : typing.Union[typing.Literal[alertapi.internal.converters.StateConverter.STATES], alertapi.snowflakes.Snowflake]
+        state : typing.Union[typing.Literal[converters.StateConverter.STATES], snowflakes.Snowflake]
             State for search.
 
         Returns
@@ -190,3 +194,141 @@ class Client:
             state = self._state_converter.convert(state)
 
         return await self._http.is_alert(state=state)
+
+    async def static_map(self) -> images.Image:
+        return await self._http.fetch_static_map()
+
+
+class GatewayClient:
+    """Gateway Alert API client.
+
+    Parameters
+    ----------
+    access_token : builtins.str
+        An access token to the Air Raid Alert API.
+        Can be obtained from https://alerts.com.ua
+
+    Example
+    -------
+        .. code-block:: python
+            import alertapi
+
+            client = alertapi.GatewayClient(access_token='...')
+
+
+            @client.listen(alertapi.ClientConnectedEvent)
+            async def on_client_connected(event: alertapi.ClientConnectedEvent) -> None:
+                states = await event.app.fetch_states()
+                print(states)
+
+
+            @client.listen(alertapi.StateUpdateEvent)
+            async def on_state_update(event: alertapi.StateUpdateEvent) -> None:
+                print('State updated': event.state.name)
+
+
+            client.connect()
+    """
+
+    __slots__: typing.Sequence[str] = (
+        '_access_token',
+        '_event_source',
+        '_client',
+        '_event_factory',
+        '_entity_factory',
+        '_event_manager',
+        '_loop',
+        '_is_alive'
+    )
+
+    def __init__(self, access_token: str) -> None:
+        self._access_token = access_token
+        self._event_source = sse_client.EventSource
+        self._client = Client(access_token=self._access_token)
+        self._event_factory = event_factory.EventFactoryImpl(self._client)
+        self._entity_factory = entity_factory.EntityFactoryImpl()
+        self._event_manager = event_manager.EventManagerImpl(self._event_factory, self._entity_factory)
+        self._loop = asyncio.get_event_loop()
+
+    @property
+    def access_token(self) -> str:
+        return self._access_token
+
+    @property
+    def loop(self) -> str:
+        return self._loop
+
+    @property
+    def is_alive(self) -> bool:
+        return self._is_alive
+
+    @property
+    def entity_factory(self) -> entity_factory.EntityFactoryImpl:
+        return self._entity_factory
+
+    def connect(self) -> None:
+        """Connect client to Air Raid Alert API endpoint."""
+
+        compiled_route = routes.SSE_LIVE.compile()
+        url = compiled_route.create_url(routes.BASE_URL)
+        headers = {'X-API-Key': self._access_token}
+
+        self._loop.run_until_complete(self._listen_event_source(url, headers))
+
+    async def _listen_event_source(self, url: str, headers: dict[str, typing.Any]) -> None:
+        """Connect to SSE endpoint and listen events.
+
+        Parameters
+        ----------
+        url : builtins.str
+            Url to endpoint.
+        headers : builtins.dict[builtins.str, typing.Any]
+            Headers for HTTP-request body.
+        """
+        async with self._event_source(url, timeout=None, headers=headers) as event_source:
+            async for event in event_source:
+                self._event_manager.consume_raw_event(event)
+
+    def listen(self, event_type: typing.Type[base_events.Event]) -> typing.Callable:
+        """Generate a decorator to subscribe a callback to an event type.
+
+        Parameters
+        ----------
+        event_type : typing.Type[alertapi.events.base_events.Event]
+            The event type to subscribe to.
+
+        Returns
+        -------
+        typing.Callable
+            A decorator for a coroutine function that passes it to
+            `EventManager.subscribe` before returning the function
+            reference.
+        """
+        return self._event_manager.listen(event_type)
+
+    def subscribe(self, event_type: typing.Type[base_events.Event], callback: typing.Callable) -> None:
+        """Subscribe a given callback to a given event type.
+
+        Parameters
+        ----------
+        event_type : typing.Type[alertapi.events.base_events.Event]
+            The event type to listen for. This will also listen for any
+            subclasses of the given type.
+        callback : typing.Callable
+            Must be a coroutine function to invoke. This should
+            consume an instance of the given event.
+
+        Example
+        -------
+        The following demonstrates subscribing a callback to state update event.
+
+        .. code-block :: python
+
+            from alertapi.events.base_events import StateUpdateEvent
+
+            async def on_state_update(event):
+                ...
+
+            client.subscribe(StateUpdateEvent, on_state_update)
+        """
+        self._event_manager.subscribe(event_type, callback)

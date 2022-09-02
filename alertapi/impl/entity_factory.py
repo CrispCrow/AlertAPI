@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Implementation of an entity factory for entities in Alert API."""
+"""Implementation of an entity factory for entities in Air Raid Alert API."""
 
 from __future__ import annotations
 
@@ -30,6 +30,7 @@ import typing
 from alertapi.api import entity_factory
 from alertapi import snowflakes
 from alertapi import states
+from alertapi import images
 
 if typing.TYPE_CHECKING:
     from alertapi.internal import data_binding
@@ -49,3 +50,6 @@ class EntityFactoryImpl(entity_factory.EntityFactory):
         self, payload: tuple[data_binding.JSONObject]
     ) -> tuple[states.State]:
         return tuple(map(self.deserialize_state, payload))
+
+    def deserialize_image(self, url: str) -> images.Image:
+        return images.Image(url)

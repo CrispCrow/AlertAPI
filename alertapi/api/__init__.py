@@ -22,4 +22,6 @@
 """Package with interfaces for Alert API components."""
 
 from alertapi.api.entity_factory import *
+from alertapi.api.event_factory import *
+from alertapi.api.event_manager import *
 from alertapi.api.http import *

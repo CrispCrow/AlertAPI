@@ -19,13 +19,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""To get started, you will want to initialize an instance of `Client`"""
+"""To get started, you will want to initialize an instance of `Client` or `GatewayClient`"""
 
 from alertapi import api
 from alertapi import impl
 from alertapi import internal
-from alertapi.impl import Client
+from alertapi.impl import Client, GatewayClient
+from alertapi.events.base_events import *
 from alertapi.errors import *
 from alertapi.snowflakes import *
 from alertapi.states import *
-from alertapi.urls import *

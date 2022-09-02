@@ -24,3 +24,4 @@
 from alertapi.internal.data_binding import *
 from alertapi.internal.routes import *
 from alertapi.internal.converters import *
+from alertapi.internal.aio import *

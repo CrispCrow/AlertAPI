@@ -1,17 +1,15 @@
 <h1 align="center">AlertAPI</h1>
 <p>
-Static typed Air Raid Alert API wrapper for Python3.
+Async and static typed Air Raid Alert microframework for Python3.
 
-Python 3.8+ are currently supported.
+Python 3.8, 3.9 and 3.10 are currently supported.
 </p>
 
 ## Installation
 Install AlertAPI from PyPi with the following command:
 
 ```bash
-python -m pip install -U alertapi
-# Windows users may need to use this instead...
-py -3 -m pip install -U alertapi
+pip install alertapi
 ```
 
 ----
@@ -24,19 +22,17 @@ pip install --upgrade alertapi
 
 ----
 
-## Start up client
+## Start up basic client
 
 ```py
 import asyncio
 
-import aiohttp
 import alertapi
 
 
 async def main() -> None:
-    async with aiohttp.ClientSession() as session:
-        client = alertapi.Client(session=session, access_token='...')
-        print(await client.fetch_states())
+    client = alertapi.Client(access_token='...')
+    print(await client.fetch_states())
 
 
 loop = asyncio.get_event_loop()
@@ -50,24 +46,51 @@ loop.run_until_complete(main())
 ```py
 import asyncio
 
-import aiohttp
 import alertapi
 
 
 async def main() -> None:
-    async with aiohttp.ClientSession() as session:
-        client = alertapi.Client(session=session, access_token='...')
+    client = alertapi.Client(access_token='...')
 
-        print('State list:', await client.fetch_states())
-        print('First 5 active alerts:', await client.fetch_states(with_alert=True, limit=5))
-        print('Inactive alerts:', await client.fetch_states(with_alert=False))
-        print('Kyiv info:', await client.fetch_state(25))
-        print('Kyiv info:', await client.fetch_state('Kyiv'))
-        print('Is active alert in Lviv oblast:', await client.is_alert('Lviv oblast'))
+    print('State list:', await client.fetch_states())
+    print('First 5 active alerts:', await client.fetch_states(with_alert=True, limit=5))
+    print('Inactive alerts:', await client.fetch_states(with_alert=False))
+    print('Kyiv info:', await client.fetch_state(25))
+    print('Kyiv info:', await client.fetch_state('Kyiv'))
+    print('Is active alert in Lviv oblast:', await client.is_alert('Lviv oblast'))
 
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
+```
+
+----
+
+Or run GatewayClient 
+
+```py
+import alertapi
+
+client = alertapi.GatewayClient(access_token='...')
+
+
+@client.listen(alertapi.ClientConnectedEvent)
+async def on_client_connected(event: alertapi.ClientConnectedEvent) -> None:
+    states = await event.app.fetch_states()
+    print(states)
+
+
+@client.listen(alertapi.PingEvent)
+async def on_ping(event: alertapi.PingEvent) -> None:
+    print('Ping event')
+
+
+@client.listen(alertapi.StateUpdateEvent)
+async def on_state_update(event: alertapi.StateUpdateEvent) -> None:
+    print('State updated:', event.state)
+
+
+client.connect()
 ```
 
 ----

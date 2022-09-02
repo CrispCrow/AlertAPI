@@ -19,14 +19,40 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Basic implementations of application components.
+"""Asyncio extensions and utilities."""
 
-These components implement the interfaces in `alertapi.api` to provide the
-baseline functionality.
-"""
+from __future__ import annotations
 
-from alertapi.impl.entity_factory import *
-from alertapi.impl.event_factory import *
-from alertapi.impl.event_manager import *
-from alertapi.impl.client import *
-from alertapi.impl.http import *
+__all__: typing.Sequence[str] = ('completed_future',)
+
+import asyncio
+import typing
+
+T_inv = typing.TypeVar('T_inv')
+
+
+def completed_future(result: typing.Optional[T_inv] = None, /) -> asyncio.Future[typing.Optional[T_inv]]:
+    """Create a future on the current running loop that is completed, then return it.
+
+    Parameters
+    ----------
+    result : T
+        The value to set for the result of the future.
+        `T` is a generic type placeholder for the type that
+        the future will have set as the result. `T` may be `builtins.None`, in
+        which case, this will return `asyncio.Future[builtins.None]`.
+
+    Returns
+    -------
+    asyncio.Future[T]
+        The completed future.
+
+    Raises
+    ------
+    RuntimeError
+        When called in an environment with no running event loop.
+    """
+
+    future = asyncio.get_running_loop().create_future()
+    future.set_result(result)
+    return future

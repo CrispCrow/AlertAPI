@@ -46,11 +46,13 @@ class HTTPClient(abc.ABC):
             Access token to Alert API.
     """
 
+    __slots__: typing.Sequence[str] = ()
+
     @abc.abstractmethod
     async def _request(
         self,
         compiled_route: routes.CompiledRoute
-    ) -> typing.Optional[data_binding.JSONObject]:
+    ) -> typing.Optional[typing.Union[data_binding.JSONObject], str]:
         """Method for making HTTP-requests.
 
         Parameters
@@ -59,8 +61,8 @@ class HTTPClient(abc.ABC):
 
         Returns
         -------
-        typing.Optional[alertapi.internal.data_binding.JSONObject]
-            JSON-object with recieved data.
+        typing.Optional[typing.Union[alertapi.internal.data_binding.JSONObject], str]
+            JSON-object with recieved data or route to static map image.
 
         Raises
         ------

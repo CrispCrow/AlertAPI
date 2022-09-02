@@ -19,12 +19,25 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""API-wide URLs."""
+"""Entities that are used to describe images on Air Raid Alert API."""
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ('BASE_URL',)
+__all__: typing.Sequence[str] = ('Image',)
 
 import typing
 
-BASE_URL: typing.Final[str] = 'https://alerts.com.ua/api'
+import attr
+
+
+@attr.define(slots=True, frozen=True)
+class Image:
+    """Interface of image information.
+
+    Attributes
+    ----------
+    url : builtins.str
+        Url to image.
+    """
+
+    url: str = attr.field()

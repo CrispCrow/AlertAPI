@@ -19,14 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Basic implementations of application components.
+"""Events that can be fired by Alert API's gateway implementation."""
 
-These components implement the interfaces in `alertapi.api` to provide the
-baseline functionality.
-"""
-
-from alertapi.impl.entity_factory import *
-from alertapi.impl.event_factory import *
-from alertapi.impl.event_manager import *
-from alertapi.impl.client import *
-from alertapi.impl.http import *
+from hikari.events.base_events import *

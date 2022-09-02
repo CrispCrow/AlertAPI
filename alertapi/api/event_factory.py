@@ -19,64 +19,54 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Core interface for an object that deserializes API objects."""
+"""Component that provides the ability to generate event models."""
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ('EntityFactory',)
+__all__: typing.Sequence[str] = ('EventFactory',)
 
-import typing
 import abc
+import typing
 
 if typing.TYPE_CHECKING:
+    from alertapi.events import base_events
     from alertapi.internal import data_binding
-    from alertapi import states
-    from alertapi import images
 
 
-class EntityFactory(abc.ABC):
-    """Interface for components that deserialize JSON payloads."""
+class EventFactory(abc.ABC):
+    """Interface for components that deserialize event payloads."""
 
     @abc.abstractmethod
-    def deserialize_state(self, payload: data_binding.JSONObject) -> states.State:
-        """Parse a raw payload from Alert API into a state object.
+    def deserialize_hello_event(self) -> base_events.ClientConnectedEvent:
+        """Parse hello event payload into client connected object.
+
+        Returns
+        -------
+        alertapi.events.base_events.ClientConnectedEvent
+            The parsed client connected event object.
+        """
+
+    @abc.abstractmethod
+    def deserialize_state_update_event(self, payload: data_binding.JSONObject) -> base_events.StateUpdateEvent:
+        """Parse state update event payload into state update object.
 
         Parameters
         ----------
         payload : alertapi.internal.data_binding.JSONObject
-            The JSON payload to deserialize.
+            JSON payload for deserialize.
 
         Returns
         -------
-        alertapi.states.State
-            The deserialized state information object.
+        alertapi.events.base_events.StateUpdateEvent
+            The parsed state update event object.
         """
 
     @abc.abstractmethod
-    def deserialize_states(self, payload: tuple[data_binding.JSONObject]) -> tuple[states.State]:
-        """Parse a tuple of raw payload from Alert API into a state objects.
-
-        Parameters
-        ----------
-        payload : builtins.tuple[alertapi.internal.data_binding.JSONObject]
-            The tuple of JSON payload to deserialize.
+    def deserialize_ping_event(self) -> base_events.PingEvent:
+        """Parse ping event payload into ping update object.
 
         Returns
         -------
-        builtins.tuple[alertapi.states.State]
-            The tuple of deserialized state information objects.
-        """
-
-    @abc.abstractmethod
-    def deserialize_image(self, url: str) -> images.Image:
-        """Parse a url to static map into Image object.
-
-        Parameters
-        ----------
-        url : builtins.str
-
-        Returns
-        -------
-        alertapi.images.Image
-            The parsed Image object.
+        alertapi.events.base_events.PingEvent
+            The parsed ping update event object.
         """

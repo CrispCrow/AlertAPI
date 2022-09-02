@@ -19,14 +19,32 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Basic implementations of application components.
+"""Implementation of an event factory for events in Air Raid Alert API."""
 
-These components implement the interfaces in `alertapi.api` to provide the
-baseline functionality.
-"""
+from __future__ import annotations
 
-from alertapi.impl.entity_factory import *
-from alertapi.impl.event_factory import *
-from alertapi.impl.event_manager import *
-from alertapi.impl.client import *
-from alertapi.impl.http import *
+__all__: typing.Sequence[str] = ('EventFactoryImpl',)
+
+import typing
+import attr
+
+from alertapi.events import base_events
+from alertapi.api import event_factory
+
+if typing.TYPE_CHECKING:
+    from alertapi.impl import client
+    from alertapi import states
+
+
+@attr.define(slots=True, frozen=True)
+class EventFactoryImpl(event_factory.EventFactory):
+    app: client.Client = attr.field()
+
+    def deserialize_hello_event(self) -> base_events.ClientConnectedEvent:
+        return base_events.ClientConnectedEvent(app=self.app)
+
+    def deserialize_state_update_event(self, state: states.State) -> base_events.StateUpdateEvent:
+        return base_events.StateUpdateEvent(app=self.app, state=state)
+
+    def deserialize_ping_event(self) -> base_events.PingEvent:
+        return base_events.PingEvent(app=self.app)

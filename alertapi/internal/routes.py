@@ -60,8 +60,18 @@ class Route:
         )
 
 
+# HTTP METHOD
 GET: typing.Final[str] = 'GET'
 
+# BASIC URL
+BASE_URL: typing.Final[str] = 'https://alerts.com.ua'
+
 # STATES
-GET_STATES: typing.Final[Route] = Route(GET, '/states')
-GET_STATE: typing.Final[Route] = Route(GET, '/states/{state}')
+GET_STATES: typing.Final[Route] = Route(GET, '/api/states')
+GET_STATE: typing.Final[Route] = Route(GET, '/api/states/{state}')
+
+# STATIC MAP
+GET_STATIC_MAP: typing.Final[Route] = Route(GET, '/map.png')
+
+# SSE ENDPOINT
+SSE_LIVE: typing.Final[Route] = Route(GET, '/api/states/live')

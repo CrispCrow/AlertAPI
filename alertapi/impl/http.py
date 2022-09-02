@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Implementation of a HTTP-client for Alert API."""
+"""Implementation of a HTTP-client for Air Raid Alert API."""
 
 from __future__ import annotations
 
@@ -32,13 +32,13 @@ import aiohttp
 from alertapi.api import http
 from alertapi.impl import entity_factory
 from alertapi.internal import routes
-from alertapi import urls
 from alertapi import errors
 
 if typing.TYPE_CHECKING:
     from alertapi.internal import data_binding
     from alertapi import snowflakes
     from alertapi import states
+    from alertapi import images
 
 
 class HttpClientImpl(http.HTTPClient):
@@ -49,32 +49,33 @@ class HttpClientImpl(http.HTTPClient):
         '_api_url'
     )
 
-    def __init__(self, session: aiohttp.ClientSession, access_token: str) -> None:
-        self._session = session
+    def __init__(self, access_token: str, session: aiohttp.ClientSession) -> None:
         self._access_token = access_token
+        self._session = session
         self._entity_factory = entity_factory.EntityFactoryImpl()
-        self._api_url = urls.BASE_URL
+        self._api_url = routes.BASE_URL
 
     async def _request(
         self, compiled_route: routes.CompiledRoute
-    ) -> typing.Optional[data_binding.JSONObject]:
+    ) -> typing.Optional[typing.Union[data_binding.JSONObject], str]:
         headers = {'X-API-Key': self._access_token}
         url = compiled_route.create_url(self._api_url)
 
-        response = await self._session.request(
-            compiled_route.method,
-            url,
-            headers=headers
-        )
-        response.raise_for_status()
-        json_payload = await response.json()
-
-        if not (json_payload.get('state') or json_payload.get('states')):
-            raise errors.StateNotFound(
-                f'Route with state {compiled_route.compiled_path} has not found.'
+        async with self._session() as session:
+            response = await session.request(
+                compiled_route.method,
+                url,
+                headers=headers
             )
+            response.raise_for_status()
 
-        return json_payload
+            if compiled_route.compiled_path.endswith('.png'):
+                return response.url
+            json_payload = await response.json()
+
+            if not (json_payload.get('state') or json_payload.get('states')):
+                raise errors.StateNotFound(f'Route with state {compiled_route.compiled_path} has not found.')
+            return json_payload
 
     async def fetch_states(
         self, with_alert: typing.Union[bool, None], limit: int
@@ -99,3 +100,9 @@ class HttpClientImpl(http.HTTPClient):
         response = await self._request(route)
 
         return response['state']['alert']
+
+    async def fetch_static_map(self) -> images.Image:
+        route = routes.GET_STATIC_MAP.compile()
+        response = await self._request(route)
+
+        return self._entity_factory.deserialize_image(response)
