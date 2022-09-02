@@ -60,6 +60,7 @@ class Client:
     Example
     -------
         .. code-block:: python
+
             import asyncio
 
             import alertapi
@@ -71,7 +72,7 @@ class Client:
 
 
             loop = asyncio.get_event_loop()
-            loop.run_until_complete(main)
+            loop.run_until_complete(main())
     """
 
     __slots__: typing.Sequence[str] = (
@@ -211,6 +212,7 @@ class GatewayClient:
     Example
     -------
         .. code-block:: python
+
             import alertapi
 
             client = alertapi.GatewayClient(access_token='...')
@@ -224,7 +226,7 @@ class GatewayClient:
 
             @client.listen(alertapi.StateUpdateEvent)
             async def on_state_update(event: alertapi.StateUpdateEvent) -> None:
-                print('State updated': event.state.name)
+                print('State updated': event.state)
 
 
             client.connect()
