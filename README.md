@@ -76,7 +76,7 @@ client = alertapi.GatewayClient(access_token='...')
 
 @client.listen(alertapi.ClientConnectedEvent)
 async def on_client_connected(event: alertapi.ClientConnectedEvent) -> None:
-    states = await event.app.fetch_states()
+    states = await event.api.fetch_states()
     print(states)
 
 
