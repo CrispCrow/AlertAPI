@@ -22,7 +22,7 @@ pip install --upgrade alertapi
 
 ----
 
-## Start up basic client
+## Start up basic API client
 
 ```py
 import asyncio
@@ -31,7 +31,7 @@ import alertapi
 
 
 async def main() -> None:
-    client = alertapi.Client(access_token='...')
+    client = alertapi.APIClient(access_token='...')
     print(await client.fetch_states())
 
 
@@ -50,7 +50,7 @@ import alertapi
 
 
 async def main() -> None:
-    client = alertapi.Client(access_token='...')
+    client = alertapi.APIClient(access_token='...')
 
     print('State list:', await client.fetch_states())
     print('First 5 active alerts:', await client.fetch_states(with_alert=True, limit=5))
@@ -66,7 +66,7 @@ loop.run_until_complete(main())
 
 ----
 
-Or run GatewayClient 
+## On run GatewayClient 
 
 ```py
 import alertapi
