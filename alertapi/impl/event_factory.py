@@ -38,13 +38,13 @@ if typing.TYPE_CHECKING:
 
 @attr.define(slots=True, frozen=True)
 class EventFactoryImpl(event_factory.EventFactory):
-    app: client.Client = attr.field()
+    api: client.APIClient = attr.field()
 
     def deserialize_hello_event(self) -> base_events.ClientConnectedEvent:
-        return base_events.ClientConnectedEvent(app=self.app)
+        return base_events.ClientConnectedEvent(api=self.api)
 
     def deserialize_state_update_event(self, state: states.State) -> base_events.StateUpdateEvent:
-        return base_events.StateUpdateEvent(app=self.app, state=state)
+        return base_events.StateUpdateEvent(api=self.api, state=state)
 
     def deserialize_ping_event(self) -> base_events.PingEvent:
-        return base_events.PingEvent(app=self.app)
+        return base_events.PingEvent(api=self.api)

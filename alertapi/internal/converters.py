@@ -32,6 +32,10 @@ from alertapi import errors
 
 
 class StateConverter:
+    """State converter.
+
+    Using for converting state name to state id.
+    """
     STATES: typing.Final[dict[str, snowflakes.Snowflake]] = {
         'Vinnytsia oblast': snowflakes.Snowflake(1),
         'Volyn oblast': snowflakes.Snowflake(2),
@@ -61,6 +65,18 @@ class StateConverter:
     }
 
     def convert(self, state: str) -> snowflakes.Snowflake:
+        """Convert name variation of state to his identificator.
+
+        Parameters
+        ----------
+        state : builtins.str
+            Name of state.
+
+        Returns
+        -------
+        alertapi.snowflakes.Snowflake
+            Snowflake representation of state.
+        """
         try:
             return StateConverter.STATES[state]
         except KeyError:

@@ -24,7 +24,7 @@
 from alertapi import api
 from alertapi import impl
 from alertapi import internal
-from alertapi.impl import Client, GatewayClient
+from alertapi.impl import APIClient, GatewayClient
 from alertapi.events.base_events import *
 from alertapi.errors import *
 from alertapi.snowflakes import *

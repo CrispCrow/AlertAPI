@@ -23,7 +23,7 @@
 
 from __future__ import annotations
 
-__all__: typing.Sequence[str] = ('Client', 'GatewayClient')
+__all__: typing.Sequence[str] = ('APIClient', 'GatewayClient')
 
 import asyncio
 import typing
@@ -46,16 +46,16 @@ if typing.TYPE_CHECKING:
     from alertapi import images
 
 
-class Client:
+class APIClient:
     """Alert API client.
 
-    Base client for Air Raid Alert API.
+    Api client for Air Raid Alert API.
 
     Parameters
     ----------
     access_token : builtins.str
         An access token to the Air Raid Alert API.
-        Can be obtained from https://alerts.com.ua
+        Can be obtained `here <https://alerts.com.ua>`_
 
     Example
     -------
@@ -67,7 +67,7 @@ class Client:
 
 
             async def main() -> None:
-                client = alertapi.Client(access_token='...')
+                client = alertapi.APIClient(access_token='...')
                 print(await client.fetch_states())
 
 
@@ -214,29 +214,29 @@ class GatewayClient:
     ----------
     access_token : builtins.str
         An access token to the Air Raid Alert API.
-        Can be obtained from https://alerts.com.ua
+        Can be obtained `here <https://alerts.com.ua>`_
 
     Example
     -------
-        .. code-block:: python
+    .. code-block:: python
 
-            import alertapi
+        import alertapi
 
-            client = alertapi.GatewayClient(access_token='...')
-
-
-            @client.listen(alertapi.ClientConnectedEvent)
-            async def on_client_connected(event: alertapi.ClientConnectedEvent) -> None:
-                states = await event.app.fetch_states()
-                print(states)
+        client = alertapi.GatewayClient(access_token='...')
 
 
-            @client.listen(alertapi.StateUpdateEvent)
-            async def on_state_update(event: alertapi.StateUpdateEvent) -> None:
-                print('State updated': event.state)
+        @client.listen(alertapi.ClientConnectedEvent)
+        async def on_client_connected(event: alertapi.ClientConnectedEvent) -> None:
+            states = await event.api.fetch_states()
+            print(states)
 
 
-            client.connect()
+        @client.listen(alertapi.StateUpdateEvent)
+        async def on_state_update(event: alertapi.StateUpdateEvent) -> None:
+            print('State updated': event.state)
+
+
+        client.connect()
     """
 
     __slots__: typing.Sequence[str] = (
@@ -252,7 +252,7 @@ class GatewayClient:
     def __init__(self, access_token: str) -> None:
         self._access_token = access_token
         self._event_source = sse_client.EventSource
-        self._client = Client(access_token=self._access_token)
+        self._client = APIClient(access_token=self._access_token)
         self._event_factory = event_factory.EventFactoryImpl(self._client)
         self._entity_factory = entity_factory.EntityFactoryImpl()
         self._event_manager = event_manager.EventManagerImpl(self._event_factory, self._entity_factory)
@@ -269,6 +269,14 @@ class GatewayClient:
     @property
     def entity_factory(self) -> entity_factory.EntityFactoryImpl:
         return self._entity_factory
+
+    @property
+    def event_factory(self) -> event_factory.EventFactoryImpl:
+        return self._event_factory
+
+    @property
+    def client(self) -> APIClient:
+        return self._client
 
     def connect(self) -> None:
         """Connect client to Air Raid Alert API endpoint."""

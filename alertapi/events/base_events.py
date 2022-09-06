@@ -64,13 +64,13 @@ class Event(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def app(self) -> client.Client:
+    def api(self) -> client.APIClient:
         """App instance for this application.
 
         Returns
         -------
-        alertapi.impl.client.GatewayClient
-            The GatewayClient app.
+        alertapi.impl.client.APIClient
+            The APIClient app.
         """
 
 
@@ -81,19 +81,19 @@ EventT = typing.TypeVar('EventT', bound=Event)
 class ClientConnectedEvent(Event):
     """Event fired when client connected to API SSE endpoint."""
 
-    app: client.Client = attr.field()
+    api: client.APIClient = attr.field()
 
 
 @attr.define(kw_only=True, weakref_slot=False)
 class PingEvent(Event):
     """Event fired when SSE endpoint sends ping packet (every 5 seconds)."""
 
-    app: client.Client = attr.field()
+    api: client.APIClient = attr.field()
 
 
 @attr.define(kw_only=True, weakref_slot=False)
 class StateUpdateEvent(Event):
     """Event fired when one of 25 states has updated."""
 
-    app: client.Client = attr.field()
+    api: client.APIClient = attr.field()
     state: states.State = attr.field()
