@@ -21,4 +21,4 @@
 # SOFTWARE.
 """Events that can be fired by Alert API's gateway implementation."""
 
-from hikari.events.base_events import *
+from alertapi.events.base_events import *
