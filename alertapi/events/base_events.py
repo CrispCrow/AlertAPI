@@ -41,7 +41,7 @@ if typing.TYPE_CHECKING:
 
 
 class Event(abc.ABC):
-    """Base event type that all Hikari events should subclass."""
+    """Base event type that all AlertAPI events should subclass."""
 
     __slots__: typing.Sequence[str] = ()
 
