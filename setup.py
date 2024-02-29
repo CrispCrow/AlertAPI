@@ -46,13 +46,6 @@ def parse_meta():
 
     return types.SimpleNamespace(**groups)
 
-
-def parse_requirements_file(path):
-    with open(path) as file:
-        dependencies = (d.strip() for d in file.read().split('\n') if d.strip())
-        return [d for d in dependencies if not d.startswith('#')]
-
-
 metadata = parse_meta()
 
 setuptools.setup(
@@ -67,7 +60,7 @@ setuptools.setup(
     url=metadata.url,
     python_requires='>=3.8',
     packages=setuptools.find_namespace_packages(include=['alertapi*']),
-    install_requires=parse_requirements_file('requirements.txt'),
+    install_requires=['attrs==21.4.0', 'aiohttp==3.8.4', 'aiohttp-sse-client==0.2.1'],
     include_package_data=True,
     zip_safe=False,
     project_urls={
