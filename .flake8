@@ -1,0 +1,10 @@
+[flake8]
+
+per-file-ignores = 
+	alertapi/__init__.py:             F401,F403
+	alertapi/api/__init__.py:         F401,F403
+	alertapi/impl/__init__.py:        F401,F403
+	alertapi/events/__init__.py:      F401,F403
+	alertapi/internal/__init__.py:    F401,F403
+
+max-line-length = 120
